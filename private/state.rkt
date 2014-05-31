@@ -26,7 +26,7 @@
 (struct cmd:remove! cmd (tag))
 (struct cmd:commit! cmd ())
 (struct cmd:clear! cmd ())
-(struct cmd:bind! cmd (t))
+(struct cmd:transform! cmd (t))
 
 (define (ST-pipeline-apply st p)
   (define fs (ST-pipeline st))
@@ -94,11 +94,10 @@
         (struct-copy istate ist
                      [tags tags-n]
                      [pp first-pp])]
-       [(cmd:bind! t)
+       [(cmd:transform! t)
         (struct-copy istate ist
                      [tags tags-n]
-                     [pp (plpict (plpict-placer pp)
-                                 (t (plpict->pict pp)))])])]))
+                     [pp (t pp)])])]))
 
 (define (ST-cmds-interp st dest-i p)
   (define first-pp (pict->plpict p))
@@ -122,7 +121,7 @@
   [cmd:remove! (-> symbol? cmd?)]
   [cmd:commit! (-> cmd?)]
   [cmd:clear! (-> cmd?)]
-  [cmd:bind! (-> (-> pict? pict?) cmd?)]
+  [cmd:transform! (-> (-> plpict? plpict?) cmd?)]
   [ST-cmds-snoc! (-> ST? cmd? void?)]
   [ST-cmds-interp (-> ST? exact-nonnegative-integer? pict? pict?)]
   [ST-pipeline-snoc! (-> ST? (-> pict? pict?) void?)]

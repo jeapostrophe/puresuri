@@ -22,8 +22,8 @@
   (snoc! (cmd:commit!)))
 (define (clear!)
   (snoc! (cmd:clear!)))
-(define (bind! t)
-  (snoc! (cmd:bind! t)))
+(define (transform! t)
+  (snoc! (cmd:transform! t)))
 
 ;; xxx add a slide name/number pipeline (communicate which slide it is via parameter)
 (define (puresuri-pipeline-snoc! f)
@@ -40,6 +40,6 @@
   [remove! (-> symbol? void?)]
   [commit! (-> void?)]
   [clear! (-> void?)]
-  [bind! (-> (-> pict? pict?) void?)]
+  [transform! (-> (-> plpict? plpict?) void?)]
   [puresuri-pipeline-snoc! (-> (-> pict? pict?) void?)]
   [puresuri-add-char-handler! (-> keycode/c (-> any) void?)]))

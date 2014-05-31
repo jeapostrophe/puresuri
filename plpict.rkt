@@ -43,6 +43,10 @@
   (define-values (new-pl new-bp) (pl bp p))
   (plpict new-pl new-bp))
 
+(define (plpict-transform pp t)
+  (plpict (plpict-placer pp)
+          (t (plpict->pict pp))))
+
 (provide
  (contract-out
   [plpict? (-> any/c boolean?)]
@@ -57,4 +61,5 @@
   [plpict (-> placer/c pict? plpict?)]
   [plpict-placer (-> plpict? placer/c)]
   [plpict-move (-> plpict? placer/c plpict?)]
-  [plpict-add (-> plpict? pict? plpict?)]))
+  [plpict-add (-> plpict? pict? plpict?)]
+  [plpict-transform (-> plpict? (-> pict? pict?) plpict?)]))

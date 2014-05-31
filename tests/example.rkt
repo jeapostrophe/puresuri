@@ -47,9 +47,7 @@
    (pin-arrow-line 10 p
                    (find-tag p 'circA) rb-find
                    (find-tag p 'circB) lt-find)))
-;; xxx add to lib
-(commit!)
-(clear!)
+(slide!)
 
 (go! (relative-placer 1/2 0.1 'rt))
 (add! #:tag 'red-fish (standard-fish 400 200 #:direction 'right #:color "red"))
