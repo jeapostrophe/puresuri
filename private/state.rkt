@@ -27,6 +27,8 @@
 (struct cmd:commit! cmd ())
 (struct cmd:clear! cmd ())
 (struct cmd:transform! cmd (t))
+(struct cmd:save! cmd (t))
+(struct cmd:restore! cmd (t))
 
 (define (ST-pipeline-apply st p)
   (define fs (ST-pipeline st))
@@ -34,14 +36,14 @@
     (f p)))
 
 (struct redo (start cmds))
-(struct istate (i tags pp))
+(struct istate (i tags saves pp))
 
 (require racket/contract/region)
 
 (define extended-nat/c
   (or/c exact-nonnegative-integer? +inf.0))
 
-(define/contract 
+(define/contract
   (interp* first-pp dest-i ist cmds)
   (-> plpict? extended-nat/c istate? (listof cmd?)
       istate?)
@@ -57,7 +59,7 @@
   (interp1 first-pp dest-i ist c)
   (-> plpict? extended-nat/c istate? cmd?
       istate?)
-  (match-define (istate i tags pp) ist)
+  (match-define (istate i tags saves pp) ist)
   (cond
     [(< dest-i i)
      ist]
@@ -78,15 +80,14 @@
        [(cmd:remove! t)
         (match (hash-ref tags t #f)
           [#f
-           ;; xxx error message?
-           ist]
+           (error 'remove! "tag ~e is not present" t)]
           [(redo start cmds-l)
            (interp* first-pp dest-i start (reverse cmds-l))])]
        [(cmd:add! t ap)
         (struct-copy istate ist
                      [tags (hash-set tags-n t
-                                     (redo ist 
-                                           (list 
+                                     (redo ist
+                                           (list
                                             (cmd:add! t (ghost (force-pict ap))))))]
                      [pp (plpict-add pp (tag-pict (force-pict ap) t))])]
        [(cmd:commit!)
@@ -100,12 +101,21 @@
        [(cmd:transform! t)
         (struct-copy istate ist
                      [tags tags-n]
-                     [pp (t pp)])])]))
+                     [pp (t pp)])]
+       [(cmd:save! t)
+        (struct-copy istate ist
+                     [saves (hash-set saves t pp)])]
+       [(cmd:restore! t)
+        (struct-copy istate ist
+                     [pp
+                      (hash-ref saves t
+                                (λ ()
+                                  (error 'restore! "tag ~e is not present")))])])]))
 
 (define (ST-cmds-interp st dest-i p)
   (define first-pp (pict->plpict p))
   (define initial-ist
-    (istate 0 (hasheq) first-pp))
+    (istate 0 (hasheq) (hasheq) first-pp))
   (define final-ist
     (interp* first-pp dest-i initial-ist (queue->list (ST-cmds st))))
   (define final-pp
@@ -125,6 +135,8 @@
   [cmd:commit! (-> cmd?)]
   [cmd:clear! (-> cmd?)]
   [cmd:transform! (-> (-> plpict? plpict?) cmd?)]
+  [cmd:save! (-> symbol? cmd?)]
+  [cmd:restore! (-> symbol? cmd?)]
   [ST-cmds-snoc! (-> ST? cmd? void?)]
   [ST-cmds-interp (-> ST? extended-nat/c pict? pict?)]
   [ST-pipeline-snoc! (-> ST? (-> pict? pict?) void?)]

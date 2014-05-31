@@ -16,6 +16,7 @@
 (go! (relative-placer 0.95 0.55 'rt))
 (add! (text "Jay McCarthy" null 30))
 (add! (text "Vassar & PLT" null 20))
+(define wormhole (save!))
 (commit!)
 (clear!)
 
@@ -58,5 +59,4 @@
 (replace! 'red-fish (jack-o-lantern 50))
 
 (slide!)
-
-;; xxx add #:save and #:restore
+(restore! wormhole)

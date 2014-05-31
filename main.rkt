@@ -1,5 +1,6 @@
 #lang racket/base
 (require racket/contract/base
+         racket/match
          pict
          puresuri/pict
          puresuri/plpict
@@ -25,6 +26,15 @@
 (define (transform! t)
   (snoc! (cmd:transform! t)))
 
+(struct save (t))
+(define (save!)
+  (define t (gensym))
+  (snoc! (cmd:save! t))
+  (save t))
+(define (restore! s)
+  (match-define (save t) s)
+  (snoc! (cmd:restore! t)))
+
 ;; xxx add a slide name/number pipeline (communicate which slide it is via parameter)
 (define (puresuri-pipeline-snoc! f)
   (ST-pipeline-snoc! (current-ST) f))
@@ -41,5 +51,8 @@
   [commit! (-> void?)]
   [clear! (-> void?)]
   [transform! (-> (-> plpict? plpict?) void?)]
+  [save? (-> any/c boolean?)]
+  [save! (-> save?)]
+  [restore! (-> save? void?)]
   [puresuri-pipeline-snoc! (-> (-> pict? pict?) void?)]
   [puresuri-add-char-handler! (-> keycode/c (-> any) void?)]))
