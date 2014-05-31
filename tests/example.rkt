@@ -25,6 +25,7 @@
 (add! my-bg)
 (go! (relative-placer 1/2 1/2 'cc))
 (add! (text "On Amazing Slideshows" null 60))
+(go! (relative-placer 0.95 0.55 'rt))
 (add! (text "Jay McCarthy" null 30))
 (add! (text "Vassar & PLT" null 20))
 (commit!)
@@ -45,7 +46,23 @@
    (pin-arrow-line 10 p
                    (find-tag p 'circA) rb-find
                    (find-tag p 'circB) lt-find)))
+(commit!)
+(clear!)
 
+(go! (relative-placer 1/2 0.1 'rt))
+(add! #:tag 'red-fish (standard-fish 400 200 #:direction 'right #:color "red"))
+(go! (relative-placer 1/2 1/2 'lt))
+(add! #:tag 'blue-fish (standard-fish 500 300 #:direction 'left #:color "blue"))
+(commit!)
+(go! (at-placer 'red-fish rc-find 'lc))
+(add! (text "red fish" null 60))
+(commit!)
+(go! (at-placer 'blue-fish lc-find 'rc))
+(add! (text "blue fish" null 60))
+
+;;(commit!)
+;;(go! (relative-placer 1/2 1/2 'lt))
+;;(add! #:tag 'blue-fish (standard-fish 500 300 #:direction 'left #:color "green"))
 
 ;; xxx add #:del label-e
 ;; xxx add #:save and #:restore

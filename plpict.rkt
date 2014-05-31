@@ -2,6 +2,7 @@
 (require racket/contract/base
          racket/match
          pict
+         unstable/gui/pict
          puresuri/pict)
 
 (struct plpict (placer pict))
@@ -20,9 +21,13 @@
   (λ (b p)
     (define dx (* rx (pict-width b)))
     (define dy (* ry (pict-height b)))
-    (values (exact-placer dx (+ dy (pict-height p))
-                          a)
-            (pin-over/align b dx dy (align->h a) (align->v a) p))))
+    ((exact-placer dx dy a) b p)))
+(define (at-placer path [finder cc-find] [a 'cc])
+  (λ (b p)
+    (define find-path 
+      (if (tag-path? path) (find-tag b path) path))
+    (define-values (x y) (finder b find-path))
+    ((exact-placer x y a) b p)))
 
 (define (pict->plpict p)
   (plpict (exact-placer 0 0 'lt) p))
@@ -42,6 +47,9 @@
   [placer/c contract?]
   [exact-placer (-> real? real? align/c placer/c)]
   [relative-placer (-> real? real? align/c placer/c)]
+  [at-placer (->* ((or/c tag-path? pict-path?))
+                  (procedure? align/c)
+                  placer/c)]
   [pict->plpict (-> pict? plpict?)]
   [plpict->pict (-> plpict? pict?)]
   [plpict (-> placer/c pict? plpict?)]
