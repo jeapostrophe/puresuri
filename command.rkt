@@ -36,7 +36,13 @@
              [(or 'left)
               (set! current-slide (max 0 (sub1 current-slide)))
               (refresh!)]
-             [\#r
+             [#\r
+              (refresh!)]
+             [#\i
+              (set! current-slide 
+                    (if (= current-slide +inf.0)
+                      0 
+                      +inf.0))
               (refresh!)]
              [_
               #f])]))

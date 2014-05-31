@@ -38,9 +38,12 @@
 
 (require racket/contract/region)
 
+(define extended-nat/c
+  (or/c exact-nonnegative-integer? +inf.0))
+
 (define/contract 
   (interp* first-pp dest-i ist cmds)
-  (-> plpict? exact-nonnegative-integer? istate? (listof cmd?)
+  (-> plpict? extended-nat/c istate? (listof cmd?)
       istate?)
   (match cmds
     [(list)
@@ -52,7 +55,7 @@
 
 (define/contract
   (interp1 first-pp dest-i ist c)
-  (-> plpict? exact-nonnegative-integer? istate? cmd?
+  (-> plpict? extended-nat/c istate? cmd?
       istate?)
   (match-define (istate i tags pp) ist)
   (cond
@@ -123,7 +126,7 @@
   [cmd:clear! (-> cmd?)]
   [cmd:transform! (-> (-> plpict? plpict?) cmd?)]
   [ST-cmds-snoc! (-> ST? cmd? void?)]
-  [ST-cmds-interp (-> ST? exact-nonnegative-integer? pict? pict?)]
+  [ST-cmds-interp (-> ST? extended-nat/c pict? pict?)]
   [ST-pipeline-snoc! (-> ST? (-> pict? pict?) void?)]
   [ST-pipeline-apply (-> ST? pict? pict?)]
   [ST-add-char-handler! (-> ST? keycode/c (-> any) void?)]

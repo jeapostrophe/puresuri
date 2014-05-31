@@ -57,5 +57,6 @@
 (commit!)
 (replace! 'red-fish (jack-o-lantern 50))
 
+(slide!)
+
 ;; xxx add #:save and #:restore
-;; xxx seek to end mode on reload
