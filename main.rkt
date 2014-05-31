@@ -8,6 +8,7 @@
          "private/param.rkt"
          "private/state.rkt")
 
+(define current-slide-number (make-parameter 0))
 (define slide-w 1024)
 (define slide-h 768)
 
@@ -35,7 +36,6 @@
   (match-define (save t) s)
   (snoc! (cmd:restore! t)))
 
-;; xxx add a slide name/number pipeline (communicate which slide it is via parameter)
 (define (puresuri-pipeline-snoc! f)
   (ST-pipeline-snoc! (current-ST) f))
 (define (puresuri-add-char-handler! k f)
@@ -45,6 +45,7 @@
  (contract-out
   [slide-w exact-nonnegative-integer?]
   [slide-h exact-nonnegative-integer?]
+  [current-slide-number (parameter/c exact-nonnegative-integer?)]
   [go! (-> placer/c void?)]
   [add! (->* (lazy-pict/c) (#:tag symbol?) void?)]
   [remove! (-> symbol? void?)]

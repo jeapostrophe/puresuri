@@ -6,6 +6,7 @@
          unstable/gui/pict
          puresuri/lib/title
          puresuri/lib/grid
+         puresuri/lib/slide-numbers
          puresuri/lib/cmds)
 (module+ test)
 

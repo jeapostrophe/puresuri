@@ -2,10 +2,7 @@
 (require pict
          racket/gui/base
          racket/class
-         racket/math
-         puresuri)
-
-;; xxx update constant for other screen sizes
+         racket/math)
 
 (provide make-plt-title-background
          make-plt-title-background*
@@ -219,8 +216,8 @@
                              plt-pen-color
                              plt-pen-style))
 
-;; xxx share everything else with slideshow
-
+;; xxx share everything above with slideshow
+(require puresuri)
 (provide plt-title-background)
 (define plt-title-background
   (make-plt-title-background* slide-w slide-h))

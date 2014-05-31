@@ -120,7 +120,8 @@
     (interp* first-pp dest-i initial-ist (queue->list (ST-cmds st))))
   (define final-pp
     (istate-pp final-ist))
-  (plpict->pict final-pp))
+  (values (istate-i final-ist)
+          (plpict->pict final-pp)))
 
 (define (ST-char-handler st k)
   (hash-ref (ST-handlers st) k #f))
@@ -138,7 +139,8 @@
   [cmd:save! (-> symbol? cmd?)]
   [cmd:restore! (-> symbol? cmd?)]
   [ST-cmds-snoc! (-> ST? cmd? void?)]
-  [ST-cmds-interp (-> ST? extended-nat/c pict? pict?)]
+  [ST-cmds-interp (-> ST? extended-nat/c pict? 
+                      (values exact-nonnegative-integer? pict?))]
   [ST-pipeline-snoc! (-> ST? (-> pict? pict?) void?)]
   [ST-pipeline-apply (-> ST? pict? pict?)]
   [ST-add-char-handler! (-> ST? keycode/c (-> any) void?)]
