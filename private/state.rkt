@@ -43,7 +43,7 @@
            [(cmd:go! pl)
             (values i (plpict-move pp pl))]
            [(cmd:add! ap)
-            (values i (plpict-add pp ap))]
+            (values i (plpict-add pp (force-pict ap)))]
            [(cmd:commit!)
             (values (add1 i) pp)])])))
   (plpict->pict final-pp))
