@@ -3,6 +3,7 @@
          racket/match
          data/queue
          pict
+         unstable/gui/pict
          puresuri/pict
          puresuri/plpict
          puresuri/gui)
@@ -20,9 +21,10 @@
 
 (struct cmd ())
 (struct cmd:go! cmd (pl))
-(struct cmd:add! cmd (p))
+(struct cmd:add! cmd (tag p))
 (struct cmd:commit! cmd ())
 (struct cmd:clear! cmd ())
+(struct cmd:bind! cmd (t))
 
 (define (ST-pipeline-apply st p)
   (define fs (ST-pipeline st))
@@ -43,12 +45,16 @@
          (match c
            [(cmd:go! pl)
             (values i (plpict-move pp pl))]
-           [(cmd:add! ap)
-            (values i (plpict-add pp (force-pict ap)))]
+           [(cmd:add! t ap)
+            (values i (plpict-add pp (tag-pict (force-pict ap) t)))]
            [(cmd:commit!)
             (values (add1 i) pp)]
            [(cmd:clear!)
-            (values i first-pp)])])))
+            (values i first-pp)]
+           [(cmd:bind! t)
+            (values i
+                    (plpict (plpict-placer pp)
+                            (t (plpict->pict pp))))])])))
   (plpict->pict final-pp))
 
 (define (ST-char-handler st k)
@@ -59,9 +65,10 @@
   [ST? (-> any/c boolean?)]
   [make-fresh-ST (-> ST?)]
   [cmd:go! (-> placer/c cmd?)]
-  [cmd:add! (-> lazy-pict/c cmd?)]
+  [cmd:add! (-> symbol? lazy-pict/c cmd?)]
   [cmd:commit! (-> cmd?)]
   [cmd:clear! (-> cmd?)]
+  [cmd:bind! (-> (-> pict? pict?) cmd?)]
   [ST-cmds-snoc! (-> ST? cmd? void?)]
   [ST-cmds-interp (-> ST? exact-nonnegative-integer? pict? pict?)]
   [ST-pipeline-snoc! (-> ST? (-> pict? pict?) void?)]

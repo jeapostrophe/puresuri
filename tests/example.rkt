@@ -3,6 +3,7 @@
          ppict-slide-grid
          puresuri
          puresuri/plpict
+         unstable/gui/pict
          puresuri/lib/title)
 (module+ test)
 
@@ -32,9 +33,20 @@
 (add! (text "What time is it?" null 60))
 (commit!)
 (add! (λ () (text (number->string (current-seconds)) null 60)))
+(commit!)
+(clear!)
 
-;; xxx add #:label label-e pict-e
+(go! (relative-placer 0 0 'lt))
+(add! #:tag 'circA (circle 20))
+(go! (relative-placer 1 1 'rb))
+(add! #:tag 'circB (circle 20))
+(bind!
+ (λ (p)
+   (pin-arrow-line 10 p
+                   (find-tag p 'circA) rb-find
+                   (find-tag p 'circB) lt-find)))
+
+
 ;; xxx add #:del label-e
-;; xxx typo in ppict-do* do
 ;; xxx add #:save and #:restore
 ;; xxx seek to end mode on reload

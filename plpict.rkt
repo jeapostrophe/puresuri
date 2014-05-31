@@ -44,5 +44,7 @@
   [relative-placer (-> real? real? align/c placer/c)]
   [pict->plpict (-> pict? plpict?)]
   [plpict->pict (-> plpict? pict?)]
+  [plpict (-> placer/c pict? plpict?)]
+  [plpict-placer (-> plpict? placer/c)]
   [plpict-move (-> plpict? placer/c plpict?)]
   [plpict-add (-> plpict? pict? plpict?)]))

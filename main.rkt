@@ -10,10 +10,18 @@
 (define slide-w 1024)
 (define slide-h 768)
 
-(define (go! pl) (ST-cmds-snoc! (current-ST) (cmd:go! pl)))
-(define (add! p) (ST-cmds-snoc! (current-ST) (cmd:add! p)))
-(define (commit!) (ST-cmds-snoc! (current-ST) (cmd:commit!)))
-(define (clear!) (ST-cmds-snoc! (current-ST) (cmd:clear!)))
+(define (snoc! c) (ST-cmds-snoc! (current-ST) c))
+
+(define (go! pl)
+  (snoc! (cmd:go! pl)))
+(define (add! p #:tag [tag (gensym)]) 
+  (snoc! (cmd:add! tag p)))
+(define (commit!)
+  (snoc! (cmd:commit!)))
+(define (clear!)
+  (snoc! (cmd:clear!)))
+(define (bind! t)
+  (snoc! (cmd:bind! t)))
 
 ;; xxx add a slide name/number pipeline (communicate which slide it is via parameter)
 (define (puresuri-pipeline-snoc! f)
@@ -26,8 +34,9 @@
   [slide-w exact-nonnegative-integer?]
   [slide-h exact-nonnegative-integer?]
   [go! (-> placer/c void?)]
-  [add! (-> lazy-pict/c void?)]
+  [add! (->* (lazy-pict/c) (#:tag symbol?) void?)]
   [commit! (-> void?)]
   [clear! (-> void?)]
+  [bind! (-> (-> pict? pict?) void?)]
   [puresuri-pipeline-snoc! (-> (-> pict? pict?) void?)]
   [puresuri-add-char-handler! (-> keycode/c (-> any) void?)]))
