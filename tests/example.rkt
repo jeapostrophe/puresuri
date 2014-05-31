@@ -1,9 +1,9 @@
 #lang racket/base
 (require pict
          ppict-slide-grid
-         "puresuri-internal.rkt"
-         "puresuri.rkt"
-         "title.rkt")
+         puresuri
+         puresuri/plpict
+         puresuri/lib/title)
 (module+ test)
 
 (define GRID? #f)

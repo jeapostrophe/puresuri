@@ -5,11 +5,10 @@
          racket/gui/base
          racket/match
          pict
-         unstable/gui/ppict
          racket/rerequire
-         data/queue
-         "puresuri.rkt"
-         "puresuri-internal.rkt")
+         puresuri
+         "private/param.rkt"
+         "private/state.rkt")
 
 ;; xxx move to pict library
 (define (draw-pict-centered p dc aw ah)
@@ -28,7 +27,7 @@
         (refresh!))
       (define/override (on-subwindow-char w e)
         (define k (send e get-key-code))
-        (define h (hash-ref (ST-handlers the-ST) k #f))
+        (define h (ST-char-handler the-ST k))
         (cond
           [h
            (h)
@@ -57,9 +56,9 @@
       (send c get-client-size))
     (define base (blank slide-w slide-h))
     (define almost-pict
-      (cmds->pict current-slide base (ST-cmds the-ST)))
+      (ST-cmds-interp the-ST current-slide base))
     (define nearly-pict
-      (apply-pipeline (ST-pipeline the-ST) almost-pict))
+      (ST-pipeline-apply the-ST almost-pict))
     (define final-pict
       (scale-to-fit (clip nearly-pict) aw ah))
     (draw-pict-centered final-pict the-dc aw ah))
@@ -87,7 +86,7 @@
                        ;; xxx put error message on screen
                        (error-display x))])
       (parameterize ([current-ST new-ST])
-        (dynamic-rerequire mp #:verbosity 'reload))
+        (dynamic-rerequire `(file ,mp) #:verbosity 'reload))
       (set! the-ST new-ST))
     (refresh!))
 
@@ -101,10 +100,12 @@
     (loop)))
 
 (module+ main
-  (require racket/cmdline)
+  (require racket/runtime-path
+           racket/cmdline)
 
+  (define-runtime-path ex "tests/example.rkt")
   (current-command-line-arguments
-   (vector "example.rkt"))
+   (vector (path->string ex)))
 
   ;; xxx printing
 
