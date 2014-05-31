@@ -16,6 +16,8 @@
   (snoc! (cmd:go! pl)))
 (define (add! p #:tag [tag (gensym)]) 
   (snoc! (cmd:add! tag p)))
+(define (remove! tag) 
+  (snoc! (cmd:remove! tag)))
 (define (commit!)
   (snoc! (cmd:commit!)))
 (define (clear!)
@@ -35,6 +37,7 @@
   [slide-h exact-nonnegative-integer?]
   [go! (-> placer/c void?)]
   [add! (->* (lazy-pict/c) (#:tag symbol?) void?)]
+  [remove! (-> symbol? void?)]
   [commit! (-> void?)]
   [clear! (-> void?)]
   [bind! (-> (-> pict? pict?) void?)]

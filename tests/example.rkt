@@ -46,6 +46,7 @@
    (pin-arrow-line 10 p
                    (find-tag p 'circA) rb-find
                    (find-tag p 'circB) lt-find)))
+;; xxx add to lib
 (commit!)
 (clear!)
 
@@ -60,10 +61,13 @@
 (go! (at-placer 'blue-fish lc-find 'rc))
 (add! (text "blue fish" null 60))
 
-;;(commit!)
-;;(go! (relative-placer 1/2 1/2 'lt))
-;;(add! #:tag 'blue-fish (standard-fish 500 300 #:direction 'left #:color "green"))
+;; xxx add replace
+(commit!)
+(remove! 'blue-fish)
 
-;; xxx add #:del label-e
+(commit!)
+(go! (relative-placer 1/2 1/2 'lt))
+(add! #:tag 'blue-fish (standard-fish 500 300 #:direction 'left #:color "green"))
+
 ;; xxx add #:save and #:restore
 ;; xxx seek to end mode on reload

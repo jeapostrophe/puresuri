@@ -1,6 +1,7 @@
 #lang racket/base
 (require racket/contract/base
          racket/match
+         racket/list
          data/queue
          pict
          unstable/gui/pict
@@ -22,6 +23,7 @@
 (struct cmd ())
 (struct cmd:go! cmd (pl))
 (struct cmd:add! cmd (tag p))
+(struct cmd:remove! cmd (tag))
 (struct cmd:commit! cmd ())
 (struct cmd:clear! cmd ())
 (struct cmd:bind! cmd (t))
@@ -31,30 +33,81 @@
   (for/fold ([p p]) ([f (in-queue fs)])
     (f p)))
 
+(struct redo (start cmds))
+(struct istate (i tags pp))
+
+(require racket/contract/region)
+
+(define/contract 
+  (interp* first-pp dest-i ist cmds)
+  (-> plpict? exact-nonnegative-integer? istate? (listof cmd?)
+      istate?)
+  (match cmds
+    [(list)
+     ist]
+    [(cons c cmds)
+     (interp* first-pp dest-i
+              (interp1 first-pp dest-i ist c)
+              cmds)]))
+
+(define/contract
+  (interp1 first-pp dest-i ist c)
+  (-> plpict? exact-nonnegative-integer? istate? cmd?
+      istate?)
+  (match-define (istate i tags pp) ist)
+  (cond
+    [(< dest-i i)
+     ist]
+    [else
+     (define tags-n
+       (for/hasheq
+        ([(t r) (in-hash tags)])
+        (define cmds-l (redo-cmds r))
+        (define r-n
+          (struct-copy redo r
+                       [cmds (cons c cmds-l)]))
+        (values t r-n)))
+     (match c
+       [(cmd:go! pl)
+        (struct-copy istate ist
+                     [tags tags-n]
+                     [pp (plpict-move pp pl)])]
+       [(cmd:remove! t)
+        (match (hash-ref tags t #f)
+          [#f
+           ;; xxx error message?
+           ist]
+          [(redo start cmds-l)
+           (interp* first-pp dest-i start (reverse cmds-l))])]
+       [(cmd:add! t ap)
+        (struct-copy istate ist
+                     [tags (hash-set tags-n t
+                                     (redo ist 
+                                           (list 
+                                            (cmd:add! t (ghost (force-pict ap))))))]
+                     [pp (plpict-add pp (tag-pict (force-pict ap) t))])]
+       [(cmd:commit!)
+        (struct-copy istate ist
+                     [tags tags-n]
+                     [i (add1 i)])]
+       [(cmd:clear!)
+        (struct-copy istate ist
+                     [tags tags-n]
+                     [pp first-pp])]
+       [(cmd:bind! t)
+        (struct-copy istate ist
+                     [tags tags-n]
+                     [pp (plpict (plpict-placer pp)
+                                 (t (plpict->pict pp)))])])]))
+
 (define (ST-cmds-interp st dest-i p)
-  (define cs (ST-cmds st))
   (define first-pp (pict->plpict p))
-  (define-values (final-i final-pp)
-    (for/fold ([i 0]
-               [pp first-pp])
-        ([c (in-queue cs)])
-      (cond
-        [(< dest-i i)
-         (values i pp)]
-        [else
-         (match c
-           [(cmd:go! pl)
-            (values i (plpict-move pp pl))]
-           [(cmd:add! t ap)
-            (values i (plpict-add pp (tag-pict (force-pict ap) t)))]
-           [(cmd:commit!)
-            (values (add1 i) pp)]
-           [(cmd:clear!)
-            (values i first-pp)]
-           [(cmd:bind! t)
-            (values i
-                    (plpict (plpict-placer pp)
-                            (t (plpict->pict pp))))])])))
+  (define initial-ist
+    (istate 0 (hasheq) first-pp))
+  (define final-ist
+    (interp* first-pp dest-i initial-ist (queue->list (ST-cmds st))))
+  (define final-pp
+    (istate-pp final-ist))
   (plpict->pict final-pp))
 
 (define (ST-char-handler st k)
@@ -66,6 +119,7 @@
   [make-fresh-ST (-> ST?)]
   [cmd:go! (-> placer/c cmd?)]
   [cmd:add! (-> symbol? lazy-pict/c cmd?)]
+  [cmd:remove! (-> symbol? cmd?)]
   [cmd:commit! (-> cmd?)]
   [cmd:clear! (-> cmd?)]
   [cmd:bind! (-> (-> pict? pict?) cmd?)]

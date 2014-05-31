@@ -26,6 +26,8 @@
   (λ (b p)
     (define find-path 
       (if (tag-path? path) (find-tag b path) path))
+    (unless find-path
+      (error 'at-placer "tag ~e not found" path))
     (define-values (x y) (finder b find-path))
     ((exact-placer x y a) b p)))
 
