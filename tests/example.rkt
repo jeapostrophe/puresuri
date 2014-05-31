@@ -20,9 +20,8 @@
 
 (define my-bg (make-plt-title-background* slide-w slide-h))
 
-(go! (relative-placer 1/2 1/2))
+(go! (relative-placer 1/2 1/2 'cc))
 (add! my-bg)
-
 (add! (text "On Amazing Slideshows"))
 
 (commit!)
