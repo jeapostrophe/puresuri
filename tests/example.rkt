@@ -5,25 +5,12 @@
          puresuri/plpict
          unstable/gui/pict
          puresuri/lib/title
+         puresuri/lib/grid
          puresuri/lib/cmds)
 (module+ test)
 
-(define GRID? #f)
-(puresuri-add-char-handler! #\g (λ () (set! GRID? (not GRID?))))
-
-(define grid-background (grid-base-pict slide-w slide-h))
-(puresuri-pipeline-snoc!
- (λ (p)
-   (if GRID?
-     (cc-superimpose
-      p
-      grid-background)
-     p)))
-
-(define my-bg (make-plt-title-background* slide-w slide-h))
-
 (go! (relative-placer 1/2 1/2 'cc))
-(add! my-bg)
+(add! plt-title-background)
 (go! (relative-placer 1/2 1/2 'cc))
 (add! (text "On Amazing Slideshows" null 60))
 (go! (relative-placer 0.95 0.55 'rt))
