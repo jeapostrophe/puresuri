@@ -1,6 +1,5 @@
 #lang racket/base
 (require pict
-         ppict-slide-grid
          puresuri
          puresuri/plpict
          unstable/gui/pict
