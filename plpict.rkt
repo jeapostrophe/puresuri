@@ -12,22 +12,20 @@
        (values placer/c pict?))))
 
 (define (exact-placer dx dy a)
-  (letrec 
-      ([pl
-        (λ (b p)
-          (values pl (pin-over/align b dx dy (align->h a) (align->v a) p)))])
-    pl))
+  (λ (b p)
+    (values (exact-placer dx (+ dy (pict-height p))
+                          a)
+            (pin-over/align b dx dy (align->h a) (align->v a) p))))
 (define (relative-placer rx ry a)
-  (letrec
-      ([pl
-        (λ (b p)
-          (define dx (* rx (pict-width b)))
-          (define dy (* ry (pict-height b)))
-          (values pl (pin-over/align b dx dy (align->h a) (align->v a) p)))])
-    pl))
+  (λ (b p)
+    (define dx (* rx (pict-width b)))
+    (define dy (* ry (pict-height b)))
+    (values (exact-placer dx (+ dy (pict-height p))
+                          a)
+            (pin-over/align b dx dy (align->h a) (align->v a) p))))
 
 (define (pict->plpict p)
-  (plpict (exact-placer 0 0 'tl) p))
+  (plpict (exact-placer 0 0 'lt) p))
 (define (plpict->pict pp)
   (plpict-pict pp))
 (define (plpict-move pp pl)

@@ -22,9 +22,16 @@
 
 (go! (relative-placer 1/2 1/2 'cc))
 (add! my-bg)
-(add! (text "On Amazing Slideshows"))
-
+(go! (relative-placer 1/2 1/2 'cc))
+(add! (text "On Amazing Slideshows" null 60))
+(add! (text "Jay McCarthy" null 30))
+(add! (text "Vassar & PLT" null 20))
 (commit!)
+(clear!)
+
+(add! (text "What time is it?" null 60))
+(commit!)
+(add! (λ () (text (number->string (current-seconds)) null 60)))
 
 ;; xxx add #:label label-e pict-e
 ;; xxx add #:del label-e

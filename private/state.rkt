@@ -22,6 +22,7 @@
 (struct cmd:go! cmd (pl))
 (struct cmd:add! cmd (p))
 (struct cmd:commit! cmd ())
+(struct cmd:clear! cmd ())
 
 (define (ST-pipeline-apply st p)
   (define fs (ST-pipeline st))
@@ -30,10 +31,10 @@
 
 (define (ST-cmds-interp st dest-i p)
   (define cs (ST-cmds st))
-  (define pp (pict->plpict p))
+  (define first-pp (pict->plpict p))
   (define-values (final-i final-pp)
     (for/fold ([i 0]
-               [pp pp])
+               [pp first-pp])
         ([c (in-queue cs)])
       (cond
         [(< dest-i i)
@@ -45,7 +46,9 @@
            [(cmd:add! ap)
             (values i (plpict-add pp (force-pict ap)))]
            [(cmd:commit!)
-            (values (add1 i) pp)])])))
+            (values (add1 i) pp)]
+           [(cmd:clear!)
+            (values i first-pp)])])))
   (plpict->pict final-pp))
 
 (define (ST-char-handler st k)
@@ -58,6 +61,7 @@
   [cmd:go! (-> placer/c cmd?)]
   [cmd:add! (-> lazy-pict/c cmd?)]
   [cmd:commit! (-> cmd?)]
+  [cmd:clear! (-> cmd?)]
   [ST-cmds-snoc! (-> ST? cmd? void?)]
   [ST-cmds-interp (-> ST? exact-nonnegative-integer? pict? pict?)]
   [ST-pipeline-snoc! (-> ST? (-> pict? pict?) void?)]

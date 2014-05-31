@@ -13,6 +13,7 @@
 (define (go! pl) (ST-cmds-snoc! (current-ST) (cmd:go! pl)))
 (define (add! p) (ST-cmds-snoc! (current-ST) (cmd:add! p)))
 (define (commit!) (ST-cmds-snoc! (current-ST) (cmd:commit!)))
+(define (clear!) (ST-cmds-snoc! (current-ST) (cmd:clear!)))
 
 ;; xxx add a slide name/number pipeline (communicate which slide it is via parameter)
 (define (puresuri-pipeline-snoc! f)
@@ -27,5 +28,6 @@
   [go! (-> placer/c void?)]
   [add! (-> lazy-pict/c void?)]
   [commit! (-> void?)]
+  [clear! (-> void?)]
   [puresuri-pipeline-snoc! (-> (-> pict? pict?) void?)]
   [puresuri-add-char-handler! (-> keycode/c (-> any) void?)]))

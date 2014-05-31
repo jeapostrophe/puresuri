@@ -36,6 +36,8 @@
              [(or 'left)
               (set! current-slide (max 0 (sub1 current-slide)))
               (refresh!)]
+             [\#r
+              (refresh!)]
              [_
               #f])]))
       (super-new)))
@@ -47,7 +49,8 @@
 
     (define-values (aw ah)
       (send c get-client-size))
-    (define base (blank slide-w slide-h))
+    (define base 
+      (colorize (filled-rectangle slide-w slide-h) "white"))
     (define almost-pict
       (ST-cmds-interp the-ST current-slide base))
     (define nearly-pict
