@@ -7,16 +7,9 @@
          pict
          racket/rerequire
          puresuri
+         puresuri/pict
          "private/param.rkt"
          "private/state.rkt")
-
-;; xxx move to pict library
-(define (draw-pict-centered p dc aw ah)
-  (define pw (pict-width p))
-  (define ph (pict-height p))
-  (define (inset x y)
-    (/ (- x y) 2))
-  (draw-pict p dc (inset aw pw) (inset ah ph)))
 
 (define (puresuri! mp)
   (define the-ST (make-fresh-ST))
