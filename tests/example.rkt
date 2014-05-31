@@ -4,7 +4,8 @@
          puresuri
          puresuri/plpict
          unstable/gui/pict
-         puresuri/lib/title)
+         puresuri/lib/title
+         puresuri/lib/cmds)
 (module+ test)
 
 (define GRID? #f)
@@ -61,13 +62,15 @@
 (go! (at-placer 'blue-fish lc-find 'rc))
 (add! (text "blue fish" null 60))
 
-;; xxx add replace
 (commit!)
 (remove! 'blue-fish)
 
 (commit!)
 (go! (relative-placer 1/2 1/2 'lt))
 (add! #:tag 'blue-fish (standard-fish 500 300 #:direction 'left #:color "green"))
+
+(commit!)
+(replace! 'red-fish (jack-o-lantern 50))
 
 ;; xxx add #:save and #:restore
 ;; xxx seek to end mode on reload
