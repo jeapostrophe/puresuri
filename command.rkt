@@ -5,19 +5,11 @@
          racket/gui/base
          racket/match
          pict
-         racket/rerequire
+         unstable/error
          puresuri
          puresuri/pict
          "private/param.rkt"
          "private/state.rkt")
-
-;; xxx put in a library
-(define (error-display x)
-  ((error-display-handler)
-   (if (exn? x)
-     (exn-message x)
-     "non-exn error:")
-   x))
 
 (define (puresuri! mp)
   (define the-ST (make-fresh-ST))
@@ -59,13 +51,10 @@
   (define (paint-canvas c dc)
     (send dc set-background "black")
     (send dc clear)
-
     (define-values (aw ah)
       (send c get-client-size))
-
     (define-values (actual-slide nearly-pict)
       (ST->slide-pict the-ST current-slide))
-
     (define final-pict
       (scale-to-fit nearly-pict aw ah))
     (draw-pict-centered final-pict the-dc aw ah))
@@ -79,17 +68,8 @@
   (dc-for-text-size the-dc)
 
   (define (load-mp!)
-    (define new-ST (make-fresh-ST))
-    (with-handlers ([;; xxx put in library
-                     (λ (x)
-                       (not (exn:break? x)))
-                     error-display])
-      (define ns (make-base-namespace))
-      (namespace-attach-module (current-namespace) 'puresuri/main ns)
-      (parameterize ([current-ST new-ST]
-                     [current-namespace ns])
-        (namespace-require `(file ,mp)))
-      (set! the-ST new-ST))
+    (with-handlers ([exn:not-break? error-display])
+      (set! the-ST (load-slides! mp)))
     (refresh!))
 
   (load-mp!)
@@ -100,6 +80,15 @@
     (yield (filesystem-change-evt mp))
     (load-mp!)
     (loop)))
+
+(define (load-slides! mp)
+  (define new-ST (make-fresh-ST))
+  (define ns (make-base-namespace))
+  (namespace-attach-module (current-namespace) 'puresuri/main ns)
+  (parameterize ([current-ST new-ST]
+                 [current-namespace ns])
+    (namespace-require `(file ,mp)))
+  new-ST)
 
 (define (ST->slide-pict st i)
   (define base
@@ -122,10 +111,8 @@
                  racket/format)
   (printf "Creating directory ~a\n" png-dir)
   (make-directory* png-dir)
-  (define the-ST (make-fresh-ST))
   (printf "Loading slides...\n")
-  (parameterize ([current-ST the-ST])
-    (dynamic-require `(file ,mp) 0))
+  (define the-ST (load-slides! mp))
   (printf "Rendering slides...\n")
   (define ps (ST->picts the-ST))
   (define how-many (length ps))

@@ -60,3 +60,5 @@
 
 (slide!)
 (restore! wormhole)
+
+;; xxx animation & juiciness

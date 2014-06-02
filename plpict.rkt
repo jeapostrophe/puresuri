@@ -3,6 +3,7 @@
          racket/match
          pict
          unstable/gui/pict
+         unstable/gui/pict/align
          puresuri/pict)
 
 (struct plpict (placer pict))
