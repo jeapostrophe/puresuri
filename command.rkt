@@ -6,6 +6,7 @@
          racket/match
          pict
          unstable/error
+         unstable/gui/pict
          puresuri
          puresuri/pict
          "private/param.rkt"
@@ -84,6 +85,7 @@
 (define (load-slides! mp)
   (define new-ST (make-fresh-ST))
   (define ns (make-base-namespace))
+  (namespace-attach-module (current-namespace) 'racket/gui/base ns)
   (namespace-attach-module (current-namespace) 'puresuri/main ns)
   (parameterize ([current-ST new-ST]
                  [current-namespace ns])
