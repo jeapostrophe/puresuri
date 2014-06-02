@@ -80,12 +80,15 @@
 
   (define (load-mp!)
     (define new-ST (make-fresh-ST))
-    (with-handlers ([(λ (x)
+    (with-handlers ([;; xxx put in library
+                     (λ (x)
                        (not (exn:break? x)))
                      error-display])
-      ;; xxx doesn't force require-based side effects to re-run (i.e. grid)
-      (parameterize ([current-ST new-ST])
-        (dynamic-rerequire `(file ,mp) #:verbosity 'reload))
+      (define ns (make-base-namespace))
+      (namespace-attach-module (current-namespace) 'puresuri/main ns)
+      (parameterize ([current-ST new-ST]
+                     [current-namespace ns])
+        (namespace-require `(file ,mp)))
       (set! the-ST new-ST))
     (refresh!))
 
