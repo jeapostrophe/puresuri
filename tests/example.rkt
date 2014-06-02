@@ -9,6 +9,8 @@
          puresuri/lib/cmds)
 (module+ test)
 
+;; xxx separate location and composition
+
 (go! (relative-placer 1/2 1/2 'cc))
 (add! plt-title-background)
 (go! (relative-placer 1/2 1/2 'cc))
