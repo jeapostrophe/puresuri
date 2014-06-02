@@ -83,6 +83,7 @@
     (with-handlers ([(λ (x)
                        (not (exn:break? x)))
                      error-display])
+      ;; xxx doesn't force require-based side effects to re-run (i.e. grid)
       (parameterize ([current-ST new-ST])
         (dynamic-rerequire `(file ,mp) #:verbosity 'reload))
       (set! the-ST new-ST))
@@ -137,10 +138,34 @@
           'png
           100)))
 
+(define (puresuri->pdf pdf-p mp)
+  (local-require racket/file
+                 racket/system)
+  (define png-dir (make-temporary-file "~a-pngs" 'directory))
+  (puresuri->png-dir png-dir mp)
+  (define pngs (sort (map path->string (directory-list png-dir)) string-ci<=?))
+  (define pdf.tex (build-path png-dir "pdf.tex"))
+  (with-output-to-file pdf.tex
+    (λ ()
+      (displayln "\\documentclass{article}")
+      (displayln "\\usepackage[active,tightpage]{preview}")
+      (displayln "\\usepackage{graphicx}")
+      (displayln "\\begin{document}")
+      (for ([p (in-list pngs)])
+        (displayln 
+         (format "\\begin{preview}\\includegraphics{~a}\\end{preview}" p)))
+      (displayln "\\end{document}")))
+  (dynamic-wind
+      void
+      (λ ()
+        (parameterize ([current-directory png-dir])
+          (system (format "pdflatex ~a" pdf.tex)))
+        (copy-file (build-path png-dir "pdf.pdf") pdf-p #t))
+      (λ ()
+        (delete-directory/files png-dir))))
+
 (module+ main
   (require racket/cmdline)
-
-  ;; xxx printing
 
   (define operation puresuri!)
 
@@ -151,5 +176,9 @@
     (set! operation
           (λ (mp)
             (puresuri->png-dir png-dir mp)))]
+   [("--pdf") pdf-p "Render as a PDF"
+    (set! operation
+          (λ (mp)
+            (puresuri->pdf pdf-p mp)))]
    #:args (module-path)
    (operation module-path)))
