@@ -1,0 +1,8 @@
+puresuri presentation system
+
+Puresuri is a new way to make presentations in Racket using
+picts. Unlike slideshow, it is based on a single logical canvas with
+operations for adding and removing elements. Many ideas from
+unstable/gui/ppict are used. Look at tests/example.rkt for an example.
+
+Documentation to come.
