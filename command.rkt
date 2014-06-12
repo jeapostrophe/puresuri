@@ -60,7 +60,7 @@
       (scale-to-fit nearly-pict aw ah))
     (draw-pict-centered final-pict the-dc aw ah))
 
-  (define pf (new pres-frame% 
+  (define pf (new pres-frame%
                   [label "Puresuri"]
                   [width slide-w]
                   [height slide-h]
@@ -148,7 +148,7 @@
       (displayln "\\usepackage{graphicx}")
       (displayln "\\begin{document}")
       (for ([p (in-list pngs)])
-        (displayln 
+        (displayln
          (format "\\begin{preview}\\includegraphics{~a}\\end{preview}" p)))
       (displayln "\\end{document}")))
   (dynamic-wind
@@ -177,4 +177,8 @@
           (λ (mp)
             (puresuri->pdf pdf-p mp)))]
    #:args (module-path)
-   (operation module-path)))
+   (cond
+     [(file-exists? module-path)
+      (operation module-path)]
+     [else
+      (error 'puresuri "File does not exist: ~e\n" module-path)])))
