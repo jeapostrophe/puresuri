@@ -60,7 +60,11 @@
       (scale-to-fit nearly-pict aw ah))
     (draw-pict-centered final-pict the-dc aw ah))
 
-  (define pf (new pres-frame% [label "Puresuri"]))
+  (define pf (new pres-frame% 
+                  [label "Puresuri"]
+                  [width slide-w]
+                  [height slide-h]
+                  [style '(fullscreen-button)]))
   (define pc (new canvas% [parent pf]
                   [paint-callback paint-canvas]))
   (define (refresh!)
