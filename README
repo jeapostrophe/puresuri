@@ -17,3 +17,6 @@ TODO
 - add as raco command
 - add animation and juiciness
 - separate location and composition in placers
+- implement 'slide'
+- replace PDF generation via latex with what slideshow does (plus fixes)
+- make portals give you the pict of the slide so you can put it inside the current slide
