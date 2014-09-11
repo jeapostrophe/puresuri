@@ -13,12 +13,12 @@
   (go! (at-placer t cc-find 'cc))
   (add! p))
 
-(define (slide!)
-  (commit!)
+(define (slide! #:effect [effect void])
+  (commit! #:effect effect)
   (clear!))
 
 (provide
  (contract-out
   [bind! (-> (-> pict? pict?) void?)]
   [replace! (-> symbol? lazy-pict/c void?)]
-  [slide! (-> void?)]))
+  [slide! (->* () (#:effect (-> any)) void?)]))

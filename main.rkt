@@ -20,8 +20,8 @@
   (snoc! (cmd:add! tag p)))
 (define (remove! tag) 
   (snoc! (cmd:remove! tag)))
-(define (commit!)
-  (snoc! (cmd:commit!)))
+(define (commit! #:effect [effect void])
+  (snoc! (cmd:commit! effect)))
 (define (clear!)
   (snoc! (cmd:clear!)))
 (define (transform! t)
@@ -49,7 +49,7 @@
   [go! (-> placer/c void?)]
   [add! (->* (lazy-pict/c) (#:tag symbol?) void?)]
   [remove! (-> symbol? void?)]
-  [commit! (-> void?)]
+  [commit! (->* () (#:effect (-> any)) void?)]
   [clear! (-> void?)]
   [transform! (-> (-> plpict? plpict?) void?)]
   [save? (-> any/c boolean?)]

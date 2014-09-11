@@ -32,6 +32,7 @@
               (exit 0)]
              [(or #\space 'right)
               (set! current-slide (add1 current-slide))
+              (set! run-effect? #t)
               (refresh!)]
              [(or 'left)
               (set! current-slide (max 0 (sub1 current-slide)))
@@ -48,6 +49,7 @@
               #f])]))
       (super-new)))
 
+  (define run-effect? #f)
   (define current-slide 0)
   (define (paint-canvas c dc)
     (send dc set-background "black")
@@ -55,7 +57,8 @@
     (define-values (aw ah)
       (send c get-client-size))
     (define-values (actual-slide nearly-pict)
-      (ST->slide-pict the-ST current-slide))
+      (ST->slide-pict the-ST current-slide run-effect?))
+    (set! run-effect? #f)
     (define final-pict
       (scale-to-fit nearly-pict aw ah))
     (draw-pict-centered final-pict the-dc aw ah))
@@ -82,8 +85,12 @@
   (send pf show #t)
 
   (let loop ()
-    (yield (filesystem-change-evt mp))
-    (load-mp!)
+    (yield 
+     (choice-evt
+      (handle-evt (filesystem-change-evt mp)
+                  (λ (_) (load-mp!)))
+      (handle-evt (alarm-evt (+ (current-inexact-milliseconds) (* 1000 1/2)))
+                  (λ (_) (refresh!)))))
     (loop)))
 
 (define (load-slides! mp)
@@ -96,11 +103,11 @@
     (namespace-require `(file ,mp)))
   new-ST)
 
-(define (ST->slide-pict st i)
+(define (ST->slide-pict st i run-effect?)
   (define base
     (colorize (filled-rectangle slide-w slide-h) "white"))
   (define-values (actual-slide almost-pict)
-    (ST-cmds-interp st i base))
+    (ST-cmds-interp st i run-effect? base))
   (define nearly-pict
     (clip
      (parameterize ([current-slide-number actual-slide])

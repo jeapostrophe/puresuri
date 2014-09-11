@@ -24,7 +24,7 @@
 (struct cmd:go! cmd (pl))
 (struct cmd:add! cmd (tag p))
 (struct cmd:remove! cmd (tag))
-(struct cmd:commit! cmd ())
+(struct cmd:commit! cmd (effect))
 (struct cmd:clear! cmd ())
 (struct cmd:transform! cmd (t))
 (struct cmd:save! cmd (t))
@@ -44,20 +44,20 @@
   (or/c exact-nonnegative-integer? +inf.0))
 
 (define/contract
-  (interp* first-pp dest-i ist cmds)
-  (-> plpict? extended-nat/c istate? (listof cmd?)
+  (interp* first-pp dest-i run-effect? ist cmds)
+  (-> plpict? extended-nat/c boolean? istate? (listof cmd?)
       istate?)
   (match cmds
     [(list)
      ist]
     [(cons c cmds)
-     (interp* first-pp dest-i
-              (interp1 first-pp dest-i ist c)
+     (interp* first-pp dest-i run-effect?
+              (interp1 first-pp dest-i run-effect? ist c)
               cmds)]))
 
 (define/contract
-  (interp1 first-pp dest-i ist c)
-  (-> plpict? extended-nat/c istate? cmd?
+  (interp1 first-pp dest-i run-effect? ist c)
+  (-> plpict? extended-nat/c boolean? istate? cmd?
       istate?)
   (match-define (istate i tags saves pp) ist)
   (cond
@@ -90,10 +90,13 @@
                                            (list
                                             (cmd:add! t (ghost (force-pict ap))))))]
                      [pp (plpict-add pp (tag-pict (force-pict ap) t))])]
-       [(cmd:commit!)
+       [(cmd:commit! effect)
+        (define ni (add1 i))
+        (when (and (= dest-i ni) run-effect?)
+          (effect))
         (struct-copy istate ist
                      [tags tags-n]
-                     [i (add1 i)])]
+                     [i ni])]
        [(cmd:clear!)
         (struct-copy istate ist
                      [tags tags-n]
@@ -112,12 +115,12 @@
                                 (λ ()
                                   (error 'restore! "tag ~e is not present")))])])]))
 
-(define (ST-cmds-interp st dest-i p)
+(define (ST-cmds-interp st dest-i run-effect? p)
   (define first-pp (pict->plpict p))
   (define initial-ist
     (istate 0 (hasheq) (hasheq) first-pp))
   (define final-ist
-    (interp* first-pp dest-i initial-ist (queue->list (ST-cmds st))))
+    (interp* first-pp dest-i run-effect? initial-ist (queue->list (ST-cmds st))))
   (define final-pp
     (istate-pp final-ist))
   (values (istate-i final-ist)
@@ -133,13 +136,13 @@
   [cmd:go! (-> placer/c cmd?)]
   [cmd:add! (-> symbol? lazy-pict/c cmd?)]
   [cmd:remove! (-> symbol? cmd?)]
-  [cmd:commit! (-> cmd?)]
+  [cmd:commit! (-> (-> any) cmd?)]
   [cmd:clear! (-> cmd?)]
   [cmd:transform! (-> (-> plpict? plpict?) cmd?)]
   [cmd:save! (-> symbol? cmd?)]
   [cmd:restore! (-> symbol? cmd?)]
   [ST-cmds-snoc! (-> ST? cmd? void?)]
-  [ST-cmds-interp (-> ST? extended-nat/c pict? 
+  [ST-cmds-interp (-> ST? extended-nat/c boolean? pict? 
                       (values exact-nonnegative-integer? pict?))]
   [ST-pipeline-snoc! (-> ST? (-> pict? pict?) void?)]
   [ST-pipeline-apply (-> ST? pict? pict?)]
