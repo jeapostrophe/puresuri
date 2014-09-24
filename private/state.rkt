@@ -82,7 +82,7 @@
           [#f
            (error 'remove! "tag ~e is not present" t)]
           [(redo start cmds-l)
-           (interp* first-pp dest-i start (reverse cmds-l))])]
+           (interp* first-pp dest-i run-effect? start (reverse cmds-l))])]
        [(cmd:add! t ap)
         (struct-copy istate ist
                      [tags (hash-set tags-n t

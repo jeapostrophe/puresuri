@@ -11,7 +11,7 @@
 (define (replace! t p)
   (remove! t)
   (go! (at-placer t cc-find 'cc))
-  (add! p))
+  (add! #:tag t p))
 
 (define (slide! #:effect [effect void])
   (commit! #:effect effect)

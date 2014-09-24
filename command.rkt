@@ -116,7 +116,7 @@
 
 (define (ST->picts st)
   (let loop ([i 0])
-    (define-values (ni p) (ST->slide-pict st i))
+    (define-values (ni p) (ST->slide-pict st i #f))
     (cons p (if (= i ni) empty (loop ni)))))
 
 (define (puresuri->png-dir png-dir mp)
