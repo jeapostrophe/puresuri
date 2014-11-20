@@ -12,7 +12,84 @@
          "private/param.rkt"
          "private/state.rkt")
 
-(define (puresuri! mp)
+(define (puresuri!/lux mp)
+  (local-require lux
+                 lux/chaos/gui
+                 lux/chaos/gui/val)
+  (define the-ST (make-fresh-ST))
+  (define run-effect? #f)
+  (define current-slide 0)
+  (define last-load 0)
+  (define change? #t)
+  (define last-pict #f)
+  (define (load-mp!)
+    (define cur (file-or-directory-modify-seconds mp))
+    (when (< last-load cur)
+      (printf "Loading!\n")
+      (with-handlers ([exn:not-break? error-display])
+        (set! the-ST (load-slides! mp))
+        (set! last-load cur)
+        (set! change? #t))))
+
+  (load-mp!)
+
+  (struct pres ()
+          #:methods gen:word
+          [(define (word-label s ft)
+             (lux-standard-label "Puresuri" ft))
+           (define (word-tick w es)
+             (define closed? #f)
+             (for ([e es])
+               (match e
+                 ['closed
+                  (set! closed? #t)]
+                 [(? (λ (x) (is-a? x key-event%)) ke)
+                  (define k (send ke get-key-code))
+                  (define h (ST-char-handler the-ST k))
+                  (cond
+                   [h
+                    (h)
+                    (set! change? #t)]
+                   [else
+                    (match k
+                      [(or #\q 'escape)
+                       (set! closed? #t)]
+                      [(or #\space 'right)
+                       (set! current-slide (add1 current-slide))
+                       (set! run-effect? #t)
+                       (set! change? #t)]
+                      [(or 'left)
+                       (set! current-slide (max 0 (sub1 current-slide)))
+                       (set! change? #t)]
+                      [#\i
+                       (set! current-slide
+                             (if (= current-slide +inf.0)
+                                 0
+                                 +inf.0))
+                       (set! change? #t)]
+                      [_
+                       (void)])])]
+                 [_
+                  (void)]))
+             (cond
+              [closed?
+               (values #f #f)]
+              [else
+               (load-mp!)
+               (when change?
+                 (define-values (actual-slide nearly-pict)
+                   (ST->slide-pict the-ST current-slide run-effect?))
+                 (set! run-effect? #f)
+                 (set! last-pict nearly-pict)
+                 (set! change? #f))
+               (values w last-pict)]))])
+
+  (call-with-chaos
+   (make-gui/value (make-gui 15.0 #:width slide-w #:height slide-h))
+   (λ ()
+     (fiat-lux (pres)))))
+
+(define (puresuri!/raw mp)
   (define the-ST (make-fresh-ST))
 
   (define pres-frame%
@@ -23,30 +100,30 @@
         (define k (send e get-key-code))
         (define h (ST-char-handler the-ST k))
         (cond
-          [h
-           (h)
-           (refresh!)]
-          [else
-           (match k
-             [(or #\q 'escape)
-              (exit 0)]
-             [(or #\space 'right)
-              (set! current-slide (add1 current-slide))
-              (set! run-effect? #t)
-              (refresh!)]
-             [(or 'left)
-              (set! current-slide (max 0 (sub1 current-slide)))
-              (refresh!)]
-             [#\r
-              (refresh!)]
-             [#\i
-              (set! current-slide
-                    (if (= current-slide +inf.0)
-                      0
-                      +inf.0))
-              (refresh!)]
-             [_
-              #f])]))
+         [h
+          (h)
+          (refresh!)]
+         [else
+          (match k
+            [(or #\q 'escape)
+             (exit 0)]
+            [(or #\space 'right)
+             (set! current-slide (add1 current-slide))
+             (set! run-effect? #t)
+             (refresh!)]
+            [(or 'left)
+             (set! current-slide (max 0 (sub1 current-slide)))
+             (refresh!)]
+            [#\r
+             (refresh!)]
+            [#\i
+             (set! current-slide
+                   (if (= current-slide +inf.0)
+                       0
+                       +inf.0))
+             (refresh!)]
+            [_
+             #f])]))
       (super-new)))
 
   (define run-effect? #f)
@@ -85,13 +162,16 @@
   (send pf show #t)
 
   (let loop ()
-    (yield 
+    (yield
      (choice-evt
       (handle-evt (filesystem-change-evt mp)
                   (λ (_) (load-mp!)))
       (handle-evt (alarm-evt (+ (current-inexact-milliseconds) (* 1000 1/2)))
                   (λ (_) (refresh!)))))
     (loop)))
+
+(define puresuri!
+  puresuri!/lux)
 
 (define (load-slides! mp)
   (define new-ST (make-fresh-ST))
@@ -159,13 +239,13 @@
          (format "\\begin{preview}\\includegraphics{~a}\\end{preview}" p)))
       (displayln "\\end{document}")))
   (dynamic-wind
-      void
-      (λ ()
-        (parameterize ([current-directory png-dir])
-          (system (format "pdflatex ~a" pdf.tex)))
-        (copy-file (build-path png-dir "pdf.pdf") pdf-p #t))
-      (λ ()
-        (delete-directory/files png-dir))))
+    void
+    (λ ()
+      (parameterize ([current-directory png-dir])
+        (system (format "pdflatex ~a" pdf.tex)))
+      (copy-file (build-path png-dir "pdf.pdf") pdf-p #t))
+    (λ ()
+      (delete-directory/files png-dir))))
 
 (module+ main
   (require racket/cmdline)
@@ -185,7 +265,7 @@
             (puresuri->pdf pdf-p mp)))]
    #:args (module-path)
    (cond
-     [(file-exists? module-path)
-      (operation module-path)]
-     [else
-      (error 'puresuri "File does not exist: ~e\n" module-path)])))
+    [(file-exists? module-path)
+     (operation module-path)]
+    [else
+     (error 'puresuri "File does not exist: ~e\n" module-path)])))
