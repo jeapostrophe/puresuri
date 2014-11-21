@@ -13,89 +13,92 @@
          "private/state.rkt"
          lux
          lux/chaos/gui
-         lux/chaos/gui/val)
+         lux/chaos/gui/val
+         lux/chaos/gui/key)
 
 ;; xxx make this functional (remove set!s)
 (define (puresuri! mp)
-  (define the-ST (make-fresh-ST))
-  (define run-effect? #f)
-  (define current-slide 0)
-  (define last-load 0)
-  (define change? #t)
-  (define last-pict #f)
-  (define (load-mp!)
+  (define (load-mp w)
     (define cur (file-or-directory-modify-seconds mp))
-    (when (< last-load cur)
-      (with-handlers ([exn:not-break? error-display])
-        (set! the-ST (load-slides! mp))
-        (set! last-load cur)
-        (set! change? #t))))
-  (define (refresh!)
-    (when change?
-      (define-values (actual-slide nearly-pict)
-        (ST->slide-pict the-ST current-slide run-effect?))
-      (set! run-effect? #f)
-      (set! last-pict nearly-pict)
-      (set! change? #f)))
+    (cond
+     [(< (pres-load-time w) cur)
+      (with-handlers ([exn:not-break?
+                       (λ (x)
+                         (error-display x)
+                         w)])
+        (refresh
+         (struct-copy pres w
+                      [load-time cur]
+                      [the-ST (load-slides! mp)])
+         #f))]
+     [else
+      w]))
 
-  (load-mp!)
+  (define (refresh w run-effect?)
+    (define-values (actual-slide nearly-pict)
+      (ST->slide-pict (pres-the-ST w) (pres-slide-n w) run-effect?))
+    (struct-copy pres w
+                 [last-pict nearly-pict]))
 
   (struct pres
-    (g/v)
+    (g/v load-time the-ST slide-n last-pict)
     #:methods gen:word
     [(define (word-label s ft)
        (lux-standard-label "Puresuri" ft))
      (define (word-event w e)
-       (define closed? #f)
-       (match e
-         ['closed
-          (set! closed? #t)]
-         [(? (λ (x) (is-a? x key-event%)) ke)
-          (define k (send ke get-key-code))
-          (define h (ST-char-handler the-ST k))
-          (cond
-           [h
-            (h)
-            (set! change? #t)]
-           [else
-            (match k
-              [(or #\q 'escape)
-               (set! closed? #t)]
-              [(or #\space 'right)
-               (set! current-slide (add1 current-slide))
-               (set! run-effect? #t)
-               (set! change? #t)]
-              [(or 'left)
-               (set! current-slide (max 0 (sub1 current-slide)))
-               (set! change? #t)]
-              [#\i
-               (set! current-slide
-                     (if (= current-slide +inf.0)
-                         0
-                         +inf.0))
-               (set! change? #t)]
-              [_
-               (void)])])]
-         [_
-          (void)])
-       (cond
-        [closed?
-         #f]
-        [else
-         (load-mp!)
-         (refresh!)
-         w]))
+       (define new-w
+         (cond
+          [(eq? e 'closed)
+           #f]
+          [(key-event? e)
+           (define k (send e get-key-code))
+           (define h (ST-char-handler (pres-the-ST w) k))
+           (cond
+            [h
+             (h)
+             (refresh w #f)]
+            [else
+             (match k
+               [(or #\q 'escape)
+                #f]
+               [(or #\space 'right)
+                (refresh
+                 (struct-copy
+                  pres w
+                  [slide-n (add1 (pres-slide-n w))])
+                 #t)]
+               [(or 'left)
+                (refresh
+                 (struct-copy
+                  pres w
+                  [slide-n (max 0 (sub1 (pres-slide-n w)))])
+                 #f)]
+               [#\i
+                (refresh
+                 (struct-copy
+                  pres w
+                  [slide-n
+                   (if (= (pres-slide-n w) +inf.0)
+                       0
+                       +inf.0)])
+                 #f)]
+               [else
+                w])])]
+          [else
+           w]))
+       (and new-w
+            (load-mp
+             new-w)))
      (define (word-tick w)
-       (set! change? #t)
-       (refresh!)
-       w)
+       (refresh w #f))
      (define (word-output w)
-       ((pres-g/v w) last-pict))])
+       ((pres-g/v w) (pres-last-pict w)))])
 
   (call-with-chaos
    (make-gui 2.0 #:width slide-w #:height slide-h)
    (λ ()
-     (fiat-lux (pres (make-gui/val))))))
+     (fiat-lux
+      (load-mp (pres (make-gui/val) 0 (make-fresh-ST) 0 #f))))))
 
 (define (load-slides! mp)
   (define new-ST (make-fresh-ST))
