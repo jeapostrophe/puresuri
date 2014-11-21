@@ -42,7 +42,10 @@
 (struct pres
   (mp g/v load-time the-ST slide-n last-pict)
   #:methods gen:word
-  [(define (word-label s ft)
+  [(define (word-fps w)
+     ;; xxx base this on whether the current slide has any animations
+     2.0)
+   (define (word-label s ft)
      (lux-standard-label "Puresuri" ft))
    (define (word-event w e)
      (define new-w
@@ -98,7 +101,7 @@
 
 (define (puresuri mp)
   (call-with-chaos
-   (make-gui 2.0 #:width slide-w #:height slide-h)
+   (make-gui #:width slide-w #:height slide-h)
    (λ ()
      (fiat-lux (make-pres mp)))))
 
