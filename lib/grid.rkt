@@ -30,8 +30,10 @@
                    (+ pos 0.05))]))))
 (puresuri-pipeline-snoc!
  (λ (p)
-   (if GRID?
-     (cc-superimpose
-      p
-      grid-background)
-     p)))
+   (values
+    (if GRID?
+        (cc-superimpose
+         p
+         grid-background)
+        p)
+    #f)))

@@ -4,4 +4,5 @@
 
 (puresuri-pipeline-snoc!
  (λ (p)
-   (rb-superimpose p (text (number->string (current-slide-number))))))
+   (values (rb-superimpose p (text (number->string (current-slide-number))))
+           #f)))

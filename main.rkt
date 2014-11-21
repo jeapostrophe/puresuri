@@ -55,5 +55,5 @@
   [save? (-> any/c boolean?)]
   [save! (-> save?)]
   [restore! (-> save? void?)]
-  [puresuri-pipeline-snoc! (-> (-> pict? pict?) void?)]
+  [puresuri-pipeline-snoc! (-> (-> pict? (values pict? boolean?)) void?)]
   [puresuri-add-char-handler! (-> keycode/c (-> any) void?)]))

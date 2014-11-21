@@ -9,11 +9,11 @@
 
 (define (force-pict p)
   (if (pict? p)
-    p
-    (p)))
+    (values p #f)
+    (values (p) #t)))
 
 (provide
  (contract-out
   [lazy-pict/c contract?]
-  [force-pict (-> lazy-pict/c pict?)]))
+  [force-pict (-> lazy-pict/c (values pict? boolean?))]))
 

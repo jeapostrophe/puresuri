@@ -34,17 +34,19 @@
     w]))
 
 (define (refresh w run-effect?)
-  (define-values (actual-slide nearly-pict)
+  (define-values (actual-slide nearly-pict animated?)
     (ST->slide-pict (pres-the-ST w) (pres-slide-n w) run-effect?))
   (struct-copy pres w
-               [last-pict nearly-pict]))
+               [last-pict nearly-pict]
+               [animated? animated?]))
 
 (struct pres
-  (mp g/v load-time the-ST slide-n last-pict)
+  (mp g/v load-time the-ST slide-n animated? last-pict)
   #:methods gen:word
   [(define (word-fps w)
-     ;; xxx base this on whether the current slide has any animations
-     2.0)
+     (if (pres-animated? w)
+         15.0
+         0.0))
    (define (word-label s ft)
      (lux-standard-label "Puresuri" ft))
    (define (word-event w e)
@@ -97,7 +99,7 @@
      ((pres-g/v w) lp))])
 
 (define (make-pres mp)
-  (load-mp (pres mp (make-gui/val) -inf.0 (make-fresh-ST) 0 #f)))
+  (load-mp (pres mp (make-gui/val) -inf.0 (make-fresh-ST) 0 #f #f)))
 
 (define (puresuri mp)
   (call-with-chaos
@@ -118,17 +120,21 @@
 (define (ST->slide-pict st i run-effect?)
   (define base
     (colorize (filled-rectangle slide-w slide-h) "white"))
-  (define-values (actual-slide almost-pict)
+  (define-values (actual-slide almost-pict slide-animated?)
     (ST-cmds-interp st i run-effect? base))
+  (define-values (post-pipe-pict pipe-animated?)
+    (parameterize ([current-slide-number actual-slide])
+      (ST-pipeline-apply st almost-pict)))  
+  (define animated?
+    (or slide-animated?
+        pipe-animated?))
   (define nearly-pict
-    (clip
-     (parameterize ([current-slide-number actual-slide])
-       (ST-pipeline-apply st almost-pict))))
-  (values actual-slide nearly-pict))
+    (clip post-pipe-pict))
+  (values actual-slide nearly-pict animated?))
 
 (define (ST->picts st)
   (let loop ([i 0])
-    (define-values (ni p) (ST->slide-pict st i #f))
+    (define-values (ni p a?) (ST->slide-pict st i #f))
     (cons p (if (= i ni) empty (loop ni)))))
 
 (define (puresuri->png-dir png-dir mp)
