@@ -106,10 +106,11 @@
                     [pp first-pp]
                     [anim? #f])]
       [(cmd:transform! t)
-       ;; xxx it is possible the t is animated
+       (define-values (t-pp t-anim?) (t pp))
        (struct-copy istate ist
                     [tags tags-n]
-                    [pp (t pp)])]
+                    [pp t-pp]
+                    [anim? (or anim? t-anim?)])]
       [(cmd:save! t)
        (struct-copy istate ist
                     [saves (hash-set saves t (cons pp anim?))])]
@@ -146,7 +147,7 @@
   [cmd:remove! (-> symbol? cmd?)]
   [cmd:commit! (-> (-> any) cmd?)]
   [cmd:clear! (-> cmd?)]
-  [cmd:transform! (-> (-> plpict? plpict?) cmd?)]
+  [cmd:transform! (-> (-> plpict? (values plpict? boolean?)) cmd?)]
   [cmd:save! (-> symbol? cmd?)]
   [cmd:restore! (-> symbol? cmd?)]
   [ST-cmds-snoc! (-> ST? cmd? void?)]

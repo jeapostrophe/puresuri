@@ -51,7 +51,7 @@
   [remove! (-> symbol? void?)]
   [commit! (->* () (#:effect (-> any)) void?)]
   [clear! (-> void?)]
-  [transform! (-> (-> plpict? plpict?) void?)]
+  [transform! (-> (-> plpict? (values plpict? boolean?)) void?)]
   [save? (-> any/c boolean?)]
   [save! (-> save?)]
   [restore! (-> save? void?)]

@@ -6,7 +6,7 @@
          puresuri/plpict)
 
 (define (bind! t)
-  (transform! (λ (pl) (plpict-transform pl t))))
+  (transform! (λ (pl) (values (plpict-transform pl t) #f))))
 
 (define (replace! t p)
   (remove! t)
