@@ -105,11 +105,8 @@
 (define-runtime-path slides.png "slides.png")
 (define (puresuri mp)
   (call-with-chaos
-   (make-gui #:width slide-w #:height slide-h)
+   (make-gui #:icon slides.png #:width slide-w #:height slide-h)
    (λ ()    
-     (when (eq? 'macosx (system-type 'os))       
-       (local-require drracket/private/dock-icon)
-       (set-dock-tile-bitmap (read-bitmap slides.png)))
      (fiat-lux (make-pres mp)))))
 
 (define (load-slides mp)
