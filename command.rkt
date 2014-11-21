@@ -16,91 +16,93 @@
          lux/chaos/gui/val
          lux/chaos/gui/key)
 
-;; xxx make this functional (remove set!s)
-(define (puresuri! mp)
-  (define (load-mp w)
-    (define cur (file-or-directory-modify-seconds mp))
-    (cond
-     [(< (pres-load-time w) cur)
-      (with-handlers ([exn:not-break?
-                       (λ (x)
-                         (error-display x)
-                         w)])
-        (refresh
-         (struct-copy pres w
-                      [load-time cur]
-                      [the-ST (load-slides! mp)])
-         #f))]
-     [else
-      w]))
+(define (load-mp w)
+  (define mp (pres-mp w))
+  (define cur (file-or-directory-modify-seconds mp))
+  (cond
+   [(< (pres-load-time w) cur)
+    (with-handlers ([exn:not-break?
+                     (λ (x)
+                       (error-display x)
+                       w)])
+      (refresh
+       (struct-copy pres w
+                    [load-time cur]
+                    [the-ST (load-slides mp)])
+       #f))]
+   [else
+    w]))
 
-  (define (refresh w run-effect?)
-    (define-values (actual-slide nearly-pict)
-      (ST->slide-pict (pres-the-ST w) (pres-slide-n w) run-effect?))
-    (struct-copy pres w
-                 [last-pict nearly-pict]))
+(define (refresh w run-effect?)
+  (define-values (actual-slide nearly-pict)
+    (ST->slide-pict (pres-the-ST w) (pres-slide-n w) run-effect?))
+  (struct-copy pres w
+               [last-pict nearly-pict]))
 
-  (struct pres
-    (g/v load-time the-ST slide-n last-pict)
-    #:methods gen:word
-    [(define (word-label s ft)
-       (lux-standard-label "Puresuri" ft))
-     (define (word-event w e)
-       (define new-w
+(struct pres
+  (mp g/v load-time the-ST slide-n last-pict)
+  #:methods gen:word
+  [(define (word-label s ft)
+     (lux-standard-label "Puresuri" ft))
+   (define (word-event w e)
+     (define new-w
+       (cond
+        [(eq? e 'closed)
+         #f]
+        [(key-event? e)
+         (define k (send e get-key-code))
+         (define h (ST-char-handler (pres-the-ST w) k))
          (cond
-          [(eq? e 'closed)
-           #f]
-          [(key-event? e)
-           (define k (send e get-key-code))
-           (define h (ST-char-handler (pres-the-ST w) k))
-           (cond
-            [h
-             (h)
-             (refresh w #f)]
-            [else
-             (match k
-               [(or #\q 'escape)
-                #f]
-               [(or #\space 'right)
-                (refresh
-                 (struct-copy
-                  pres w
-                  [slide-n (add1 (pres-slide-n w))])
-                 #t)]
-               [(or 'left)
-                (refresh
-                 (struct-copy
-                  pres w
-                  [slide-n (max 0 (sub1 (pres-slide-n w)))])
-                 #f)]
-               [#\i
-                (refresh
-                 (struct-copy
-                  pres w
-                  [slide-n
-                   (if (= (pres-slide-n w) +inf.0)
-                       0
-                       +inf.0)])
-                 #f)]
-               [else
-                w])])]
+          [h
+           (h)
+           (refresh w #f)]
           [else
-           w]))
-       (and new-w
-            (load-mp
-             new-w)))
-     (define (word-tick w)
-       (refresh w #f))
-     (define (word-output w)
-       ((pres-g/v w) (pres-last-pict w)))])
+           (match k
+             [(or #\q 'escape)
+              #f]
+             [(or #\space 'right)
+              (refresh
+               (struct-copy
+                pres w
+                [slide-n (add1 (pres-slide-n w))])
+               #t)]
+             [(or 'left)
+              (refresh
+               (struct-copy
+                pres w
+                [slide-n (max 0 (sub1 (pres-slide-n w)))])
+               #f)]
+             [#\i
+              (refresh
+               (struct-copy
+                pres w
+                [slide-n
+                 (if (= (pres-slide-n w) +inf.0)
+                     0
+                     +inf.0)])
+               #f)]
+             [else
+              w])])]
+        [else
+         w]))
+     (and new-w
+          (load-mp new-w)))
+   (define (word-tick w)
+     (refresh w #f))
+   (define (word-output w)
+     (define lp (pres-last-pict w))
+     ((pres-g/v w) lp))])
 
+(define (make-pres mp)
+  (load-mp (pres mp (make-gui/val) -inf.0 (make-fresh-ST) 0 #f)))
+
+(define (puresuri mp)
   (call-with-chaos
    (make-gui 2.0 #:width slide-w #:height slide-h)
    (λ ()
-     (fiat-lux
-      (load-mp (pres (make-gui/val) 0 (make-fresh-ST) 0 #f))))))
+     (fiat-lux (make-pres mp)))))
 
-(define (load-slides! mp)
+(define (load-slides mp)
   (define new-ST (make-fresh-ST))
   (define ns (make-base-namespace))
   (namespace-attach-module (current-namespace) 'racket/gui/base ns)
@@ -132,7 +134,7 @@
   (printf "Creating directory ~a\n" png-dir)
   (make-directory* png-dir)
   (printf "Loading slides...\n")
-  (define the-ST (load-slides! mp))
+  (define the-ST (load-slides mp))
   (printf "Rendering slides...\n")
   (define ps (ST->picts the-ST))
   (define how-many (length ps))
@@ -177,7 +179,7 @@
 (module+ main
   (require racket/cmdline)
 
-  (define operation puresuri!)
+  (define operation puresuri)
 
   (command-line
    #:program "puresuri"
