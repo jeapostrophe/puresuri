@@ -10,12 +10,13 @@
          puresuri
          puresuri/pict
          "private/param.rkt"
-         "private/state.rkt")
+         "private/state.rkt"
+         lux
+         lux/chaos/gui
+         lux/chaos/gui/val)
 
-(define (puresuri!/lux mp)
-  (local-require lux
-                 lux/chaos/gui
-                 lux/chaos/gui/val)
+;; xxx make this functional (remove set!s)
+(define (puresuri! mp)
   (define the-ST (make-fresh-ST))
   (define run-effect? #f)
   (define current-slide 0)
@@ -25,153 +26,76 @@
   (define (load-mp!)
     (define cur (file-or-directory-modify-seconds mp))
     (when (< last-load cur)
-      (printf "Loading!\n")
       (with-handlers ([exn:not-break? error-display])
         (set! the-ST (load-slides! mp))
         (set! last-load cur)
         (set! change? #t))))
+  (define (refresh!)
+    (when change?
+      (define-values (actual-slide nearly-pict)
+        (ST->slide-pict the-ST current-slide run-effect?))
+      (set! run-effect? #f)
+      (set! last-pict nearly-pict)
+      (set! change? #f)))
 
   (load-mp!)
 
-  (struct pres ()
-          #:methods gen:word
-          [(define (word-label s ft)
-             (lux-standard-label "Puresuri" ft))
-           (define (word-tick w es)
-             (define closed? #f)
-             (for ([e es])
-               (match e
-                 ['closed
-                  (set! closed? #t)]
-                 [(? (λ (x) (is-a? x key-event%)) ke)
-                  (define k (send ke get-key-code))
-                  (define h (ST-char-handler the-ST k))
-                  (cond
-                   [h
-                    (h)
-                    (set! change? #t)]
-                   [else
-                    (match k
-                      [(or #\q 'escape)
-                       (set! closed? #t)]
-                      [(or #\space 'right)
-                       (set! current-slide (add1 current-slide))
-                       (set! run-effect? #t)
-                       (set! change? #t)]
-                      [(or 'left)
-                       (set! current-slide (max 0 (sub1 current-slide)))
-                       (set! change? #t)]
-                      [#\i
-                       (set! current-slide
-                             (if (= current-slide +inf.0)
-                                 0
-                                 +inf.0))
-                       (set! change? #t)]
-                      [_
-                       (void)])])]
-                 [_
-                  (void)]))
-             (cond
-              [closed?
-               (values #f #f)]
-              [else
-               (load-mp!)
-               (when change?
-                 (define-values (actual-slide nearly-pict)
-                   (ST->slide-pict the-ST current-slide run-effect?))
-                 (set! run-effect? #f)
-                 (set! last-pict nearly-pict)
-                 (set! change? #f))
-               (values w last-pict)]))])
+  (struct pres
+    (g/v)
+    #:methods gen:word
+    [(define (word-label s ft)
+       (lux-standard-label "Puresuri" ft))
+     (define (word-event w e)
+       (define closed? #f)
+       (match e
+         ['closed
+          (set! closed? #t)]
+         [(? (λ (x) (is-a? x key-event%)) ke)
+          (define k (send ke get-key-code))
+          (define h (ST-char-handler the-ST k))
+          (cond
+           [h
+            (h)
+            (set! change? #t)]
+           [else
+            (match k
+              [(or #\q 'escape)
+               (set! closed? #t)]
+              [(or #\space 'right)
+               (set! current-slide (add1 current-slide))
+               (set! run-effect? #t)
+               (set! change? #t)]
+              [(or 'left)
+               (set! current-slide (max 0 (sub1 current-slide)))
+               (set! change? #t)]
+              [#\i
+               (set! current-slide
+                     (if (= current-slide +inf.0)
+                         0
+                         +inf.0))
+               (set! change? #t)]
+              [_
+               (void)])])]
+         [_
+          (void)])
+       (cond
+        [closed?
+         #f]
+        [else
+         (load-mp!)
+         (refresh!)
+         w]))
+     (define (word-tick w)
+       (set! change? #t)
+       (refresh!)
+       w)
+     (define (word-output w)
+       ((pres-g/v w) last-pict))])
 
   (call-with-chaos
-   (make-gui/value (make-gui 15.0 #:width slide-w #:height slide-h))
+   (make-gui 2.0 #:width slide-w #:height slide-h)
    (λ ()
-     (fiat-lux (pres)))))
-
-(define (puresuri!/raw mp)
-  (define the-ST (make-fresh-ST))
-
-  (define pres-frame%
-    (class frame%
-      (define/override (on-size w h)
-        (refresh!))
-      (define/override (on-subwindow-char w e)
-        (define k (send e get-key-code))
-        (define h (ST-char-handler the-ST k))
-        (cond
-         [h
-          (h)
-          (refresh!)]
-         [else
-          (match k
-            [(or #\q 'escape)
-             (exit 0)]
-            [(or #\space 'right)
-             (set! current-slide (add1 current-slide))
-             (set! run-effect? #t)
-             (refresh!)]
-            [(or 'left)
-             (set! current-slide (max 0 (sub1 current-slide)))
-             (refresh!)]
-            [#\r
-             (refresh!)]
-            [#\i
-             (set! current-slide
-                   (if (= current-slide +inf.0)
-                       0
-                       +inf.0))
-             (refresh!)]
-            [_
-             #f])]))
-      (super-new)))
-
-  (define run-effect? #f)
-  (define current-slide 0)
-  (define (paint-canvas c dc)
-    (send dc set-background "black")
-    (send dc clear)
-    (define-values (aw ah)
-      (send c get-client-size))
-    (define-values (actual-slide nearly-pict)
-      (ST->slide-pict the-ST current-slide run-effect?))
-    (set! run-effect? #f)
-    (define final-pict
-      (scale-to-fit nearly-pict aw ah))
-    (draw-pict-centered final-pict the-dc aw ah))
-
-  (define pf (new pres-frame%
-                  [label "Puresuri"]
-                  [width slide-w]
-                  [height slide-h]
-                  [style '(fullscreen-button)]))
-  (define pc (new canvas% [parent pf]
-                  [paint-callback paint-canvas]))
-  (define (refresh!)
-    (send pc refresh))
-  (define the-dc (send pc get-dc))
-  (dc-for-text-size the-dc)
-
-  (define (load-mp!)
-    (with-handlers ([exn:not-break? error-display])
-      (set! the-ST (load-slides! mp)))
-    (refresh!))
-
-  (load-mp!)
-
-  (send pf show #t)
-
-  (let loop ()
-    (yield
-     (choice-evt
-      (handle-evt (filesystem-change-evt mp)
-                  (λ (_) (load-mp!)))
-      (handle-evt (alarm-evt (+ (current-inexact-milliseconds) (* 1000 1/2)))
-                  (λ (_) (refresh!)))))
-    (loop)))
-
-(define puresuri!
-  puresuri!/lux)
+     (fiat-lux (pres (make-gui/val))))))
 
 (define (load-slides! mp)
   (define new-ST (make-fresh-ST))
@@ -268,4 +192,4 @@
     [(file-exists? module-path)
      (operation module-path)]
     [else
-     (error 'puresuri "File does not exist: ~e\n" module-path)])))
+     (error 'puresuri "File does not exist: ~e" module-path)])))
