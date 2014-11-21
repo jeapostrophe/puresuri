@@ -11,6 +11,7 @@
          puresuri/pict
          "private/param.rkt"
          "private/state.rkt"
+         racket/runtime-path
          lux
          lux/chaos/gui
          lux/chaos/gui/val
@@ -101,10 +102,14 @@
 (define (make-pres mp)
   (load-mp (pres mp (make-gui/val) -inf.0 (make-fresh-ST) 0 #f #f)))
 
+(define-runtime-path slides.png "slides.png")
 (define (puresuri mp)
   (call-with-chaos
    (make-gui #:width slide-w #:height slide-h)
-   (λ ()
+   (λ ()    
+     (when (eq? 'macosx (system-type 'os))       
+       (local-require drracket/private/dock-icon)
+       (set-dock-tile-bitmap (read-bitmap slides.png)))
      (fiat-lux (make-pres mp)))))
 
 (define (load-slides mp)
