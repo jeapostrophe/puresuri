@@ -3,7 +3,7 @@ puresuri presentation system
 Puresuri is a new way to make presentations in Racket using
 picts. Unlike slideshow, it is based on a single logical canvas with
 operations for adding and removing elements. Many ideas from
-unstable/gui/ppict are used. Look at tests/example.rkt for an example. 
+unstable/gui/ppict are used. Look at tests/example.rkt for an example.
 
 Run:
 
@@ -15,8 +15,9 @@ Documentation to come.
 
 TODO
 - add as raco command
-- add animation and juiciness
 - separate location and composition in placers
-- implement 'slide'
+- implement 'slide' compatibility with slideshow
 - replace PDF generation via latex with what slideshow does (plus fixes)
 - make portals give you the pict of the slide so you can put it inside the current slide
+- make an overlay to show the mouse position coords for easily placing objects
+- make a library for virtual whiteboards (everything is pushed up/down as things are added with implicit use of commit! in the code)
