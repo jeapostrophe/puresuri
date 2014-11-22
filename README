@@ -7,14 +7,11 @@ unstable/gui/ppict are used. Look at tests/example.rkt for an example.
 
 Run:
 
-racket -t command.rkt -- tests/example.rkt
+raco puresuri tests/example.rkt
 
 Try changing example.rkt while this is running.
 
-Documentation to come.
-
 TODO
-- add as raco command
 - separate location and composition in placers
 - implement 'slide' compatibility with slideshow
 - replace PDF generation via latex with what slideshow does (plus fixes)

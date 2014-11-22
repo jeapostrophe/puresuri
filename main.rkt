@@ -36,18 +36,26 @@
   (match-define (save t) s)
   (snoc! (cmd:restore! t)))
 
+(define pipeline/c
+  (-> pict? (values pict? boolean?)))
 (define (puresuri-pipeline-snoc! f)
   (ST-pipeline-snoc! (current-ST) f))
 (define (puresuri-add-char-handler! k f)
   (ST-add-char-handler! (current-ST) k f))
 
 (provide
+ plpict?
+ placer/c
+ exact-placer
+ relative-placer
+ at-placer
+ lazy-pict/c
  (contract-out
   [slide-w exact-nonnegative-integer?]
   [slide-h exact-nonnegative-integer?]
   [current-slide-number (parameter/c exact-nonnegative-integer?)]
   [go! (-> placer/c void?)]
-  [add! (->* (lazy-pict/c) (#:tag symbol?) void?)]
+  [add! (->* (lazy-pict/c) (#:tag (or/c #f symbol?)) void?)]
   [remove! (-> symbol? void?)]
   [commit! (->* () (#:effect (-> any)) void?)]
   [clear! (-> void?)]
@@ -55,5 +63,7 @@
   [save? (-> any/c boolean?)]
   [save! (-> save?)]
   [restore! (-> save? void?)]
-  [puresuri-pipeline-snoc! (-> (-> pict? (values pict? boolean?)) void?)]
-  [puresuri-add-char-handler! (-> keycode/c (-> any) void?)]))
+  [pipeline/c contract?]
+  [puresuri-pipeline-snoc! (-> pipeline/c void?)]
+  [charcode/c contract?]
+  [puresuri-add-char-handler! (-> charcode/c (-> any) void?)]))

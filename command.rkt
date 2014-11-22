@@ -188,12 +188,13 @@
       (delete-directory/files png-dir))))
 
 (module+ main
-  (require racket/cmdline)
+  (require racket/cmdline
+           raco/command-name)
 
   (define operation puresuri)
 
   (command-line
-   #:program "puresuri"
+   #:program (short-program+command-name)
    #:once-any
    [("--pngs") png-dir "Render as directory of pngs"
     (set! operation

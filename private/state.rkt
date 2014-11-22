@@ -155,5 +155,5 @@
                       (values exact-nonnegative-integer? pict? boolean?))]
   [ST-pipeline-snoc! (-> ST? (-> pict? (values pict? boolean?)) void?)]
   [ST-pipeline-apply (-> ST? pict? (values pict? boolean?))]
-  [ST-add-char-handler! (-> ST? keycode/c (-> any) void?)]
-  [ST-char-handler (-> ST? keycode/c (or/c false/c (-> any)))]))
+  [ST-add-char-handler! (-> ST? charcode/c (-> any) void?)]
+  [ST-char-handler (-> ST? charcode/c (or/c false/c (-> any)))]))

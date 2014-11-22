@@ -1,9 +1,10 @@
 #lang racket/base
-(require racket/contract/base)
+(require racket/contract/base
+         racket/gui/base)
 
-(define keycode/c
-  (or/c char? symbol?))
+(define charcode/c
+  (or/c char? key-code-symbol?))
 
 (provide
  (contract-out
-  [keycode/c contract?]))
+  [charcode/c contract?]))
