@@ -3,7 +3,12 @@
 (define collection "puresuri")
 (define deps '("lux"
                "base" "gui-lib" "pict-lib" "unstable-lib"))
-(define build-deps '("scribble-lib"
+(define build-deps '("gui-doc"
+                     "pict-doc"
+                     "racket-doc"
+                     "slideshow-doc"
+                     "unstable-doc"
+                     "scribble-lib"
                      ))
 (define scribblings '(("puresuri.scrbl" ())))
 (define raco-commands
