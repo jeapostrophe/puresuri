@@ -3,7 +3,8 @@
 (define collection "puresuri")
 (define deps '("lux"
                "base" "gui-lib" "pict-lib" "unstable-lib"))
-(define build-deps '("gui-doc"
+(define build-deps '("ppict"
+                     "gui-doc"
                      "pict-doc"
                      "racket-doc"
                      "slideshow-doc"
