@@ -6,7 +6,6 @@
          racket/match
          pict
          unstable/error
-         unstable/gui/pict
          puresuri
          puresuri/pict
          "private/param.rkt"

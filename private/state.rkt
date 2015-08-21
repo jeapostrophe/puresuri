@@ -4,7 +4,7 @@
          racket/list
          data/queue
          pict
-         unstable/gui/pict
+         ppict/tag
          puresuri/pict
          puresuri/plpict
          puresuri/gui)
