@@ -2,7 +2,7 @@
 (require pict
          puresuri
          puresuri/plpict
-         unstable/gui/pict
+         ppict/tag
          puresuri/lib/title
          puresuri/lib/grid
          puresuri/lib/slide-numbers

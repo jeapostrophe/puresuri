@@ -2,7 +2,7 @@
 (define version "1.0")
 (define collection "puresuri")
 (define deps '("lux"
-               "base" "gui-lib" "pict-lib" "unstable-lib"))
+               "base" "gui-lib" "pict-lib" "ppict"))
 (define build-deps '("ppict"
                      "gui-doc"
                      "pict-doc"

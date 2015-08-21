@@ -2,8 +2,8 @@
 (require racket/contract/base
          racket/match
          pict
-         unstable/gui/pict
-         unstable/gui/pict/align
+         ppict/tag
+         ppict/align
          puresuri/pict)
 
 (struct plpict (placer pict))

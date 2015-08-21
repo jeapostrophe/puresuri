@@ -5,7 +5,7 @@
                     puresuri/lib/title
                     puresuri/lib/grid
                     puresuri/lib/slide-numbers
-                    unstable/gui/pict/align
+                    ppict/align
                     pict
                     racket/contract/base
                     racket/gui/base
