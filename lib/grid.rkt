@@ -1,6 +1,6 @@
 #lang racket/base
 (require pict
-         unstable/gui/ppict
+         ppict
          racket/format
          puresuri)
 
