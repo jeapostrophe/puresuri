@@ -8,9 +8,6 @@
 
 (provide plt-title-background)
 
-(define plt-title-background
-  (make-plt-title-background slide-w slide-h))
-
 (define plt-red-color (make-object color% 242 183 183))
 (define plt-blue-color (make-object color% 183 202 242))
 (define plt-background-color (make-object color% 209 220 248))
@@ -213,3 +210,6 @@
                               plt-lambda-color
                               plt-pen-color
                               plt-pen-style))
+
+(define plt-title-background
+  (make-plt-title-background slide-w slide-h))
