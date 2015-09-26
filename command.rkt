@@ -28,9 +28,20 @@
       (refresh
        (struct-copy pres w
                     [load-time cur]
+                    [fe
+                     (let ()
+                       (define fce (filesystem-change-evt mp))
+                       (define done? #t)
+                       (define the-evt
+                         (wrap-evt fce
+                                 (λ (_)
+                                   (set! done? #t)
+                                   'file-changed)))
+                       (guard-evt (λ () (if done? never-evt the-evt))))]
                     [the-ST (load-slides mp)])
        #f))]
    [else
+    (printf "no update\n")
     w]))
 
 (define (refresh w run-effect?)
@@ -41,7 +52,7 @@
                [animated? animated?]))
 
 (struct pres
-  (mp g/v load-time the-ST slide-n animated? last-pict)
+  (mp g/v load-time the-ST slide-n animated? last-pict fe)
   #:methods gen:word
   [(define (word-fps w)
      (if (pres-animated? w)
@@ -92,6 +103,8 @@
          w]))
      (and new-w
           (load-mp new-w)))
+   (define (word-evt w)
+     (pres-fe w))
    (define (word-tick w)
      (refresh w #f))
    (define (word-output w)
@@ -99,7 +112,7 @@
      ((pres-g/v w) lp))])
 
 (define (make-pres mp)
-  (load-mp (pres mp (make-gui/val) -inf.0 (make-fresh-ST) 0 #f #f)))
+  (load-mp (pres mp (make-gui/val) -inf.0 (make-fresh-ST) 0 #f #f never-evt)))
 
 (define-runtime-path slides.png "slides.png")
 (define (puresuri mp)
