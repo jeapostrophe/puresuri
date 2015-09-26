@@ -41,7 +41,6 @@
                     [the-ST (load-slides mp)])
        #f))]
    [else
-    (printf "no update\n")
     w]))
 
 (define (refresh w run-effect?)
