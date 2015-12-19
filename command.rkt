@@ -20,7 +20,8 @@
   (define mp (pres-mp w))
   (define cur (file-or-directory-modify-seconds mp))
   (cond
-   [(< (pres-load-time w) cur)
+    [(< (pres-load-time w) cur)
+     (printf "reloading ~a\n" mp)
     (with-handlers ([exn:not-break?
                      (λ (x)
                        (error-display x)
@@ -116,7 +117,10 @@
 (define-runtime-path slides.png "slides.png")
 (define (puresuri mp)
   (call-with-chaos
-   (make-gui #:icon slides.png #:width slide-w #:height slide-h)
+   (make-gui #:icon slides.png
+             #:frame-style '(fullscreen-button)
+             #:start-fullscreen? #t
+             #:width slide-w #:height slide-h)
    (λ ()    
      (fiat-lux (make-pres mp)))))
 
@@ -126,6 +130,7 @@
   (namespace-attach-module (current-namespace) 'racket/gui/base ns)
   (namespace-attach-module (current-namespace) 'puresuri/main ns)
   (parameterize ([current-ST new-ST]
+                 [current-command-line-arguments (vector)]
                  [current-namespace ns])
     (namespace-require `(file ,mp)))
   new-ST)
@@ -217,7 +222,7 @@
             (puresuri->pdf pdf-p mp)))]
    #:args (module-path)
    (cond
-    [(file-exists? module-path)
-     (operation module-path)]
-    [else
-     (error 'puresuri "File does not exist: ~e" module-path)])))
+     [(file-exists? module-path)
+      (operation module-path)]
+     [else
+      (error 'puresuri "File does not exist: ~e" module-path)])))

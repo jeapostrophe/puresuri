@@ -11,6 +11,6 @@
                      "unstable-doc"
                      "scribble-lib"
                      ))
-(define scribblings '(("puresuri.scrbl" ())))
+(define scribblings '(("puresuri.scrbl" () ("Presentations"))))
 (define raco-commands
   '(("puresuri" (submod puresuri/command main) "run a puresuri slideshow" #f)))
